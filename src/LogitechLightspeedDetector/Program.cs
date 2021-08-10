@@ -1,9 +1,4 @@
-﻿using HidSharp;
-using HidSharp.Reports.Encodings;
-using System;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Collections.Generic;
+﻿using System;
 
 namespace LogitechLightspeedDetector
 {
@@ -17,6 +12,7 @@ namespace LogitechLightspeedDetector
                 Console.WriteLine($"Name: {device.DeviceName}");
                 Console.WriteLine($"Type: {device.LogitechDeviceType}");
                 Console.WriteLine($"Wireless Index: {device.DeviceIndex}");
+                Console.WriteLine($"Led count: {device.LedCount}");
             }
 
             Console.ReadLine();

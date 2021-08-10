@@ -164,9 +164,12 @@ namespace LogitechLightspeedDetector
                 getNameRequest.Data00 = (byte)deviceNameBuilder.Length;
                 deviceStream.Write(getNameRequest.AsSpan());
                 deviceStream.Read(response.AsSpan());
-                deviceNameBuilder.Append(Encoding.UTF8.GetString(response.AsSpan()[4..]));
+
+                var dataPortion = response.AsSpan()[4..];
+                var stringWithoutNullTerminator = Encoding.UTF8.GetString(dataPortion).TrimEnd((char)0);
+                deviceNameBuilder.Append(stringWithoutNullTerminator);
             }
-            DeviceName = deviceNameBuilder.ToString().TrimEnd('\0');
+            DeviceName = deviceNameBuilder.ToString();
 
             getNameRequest.Init(DeviceIndex, nameFeatureIndex, LOGITECH_CMD_DEVICE_NAME_TYPE_GET_TYPE);
             deviceStream.Write(getNameRequest.AsSpan());

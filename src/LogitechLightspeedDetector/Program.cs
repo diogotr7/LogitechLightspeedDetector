@@ -43,6 +43,12 @@ namespace LogitechLightspeedDetector
                 lines.Add($"Wireless Index: {device.DeviceIndex}");
                 lines.Add($"Led count: {device.LedCount}");
             }
+
+            foreach (var line in lines)
+            {
+                Console.WriteLine(line);
+            }
+
             System.IO.File.WriteAllLines("Output.txt", lines);
             Console.WriteLine("Wrote to file");
         }

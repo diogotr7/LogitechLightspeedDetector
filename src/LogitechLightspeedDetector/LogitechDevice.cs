@@ -38,7 +38,7 @@ namespace LogitechLightspeedDetector
         public Dictionary<ushort, byte> Features { get; } = new();
         public byte DeviceIndex { get; private set; }
         public byte RgbFeatureIndex { get; private set; }
-        public uint LogitechDeviceType { get; private set; }
+        public LogitechDeviceType LogitechDeviceType { get; private set; }
         public bool Wireless { get; private set; }
         public string DeviceName { get; private set; }
         public byte LedCount { get; private set; }
@@ -200,7 +200,7 @@ namespace LogitechLightspeedDetector
             getNameRequest.Init(DeviceIndex, nameFeatureIndex, LOGITECH_CMD_DEVICE_NAME_TYPE_GET_TYPE);
             deviceStream.Write(getNameRequest.AsSpan());
             deviceStream.Read(response.AsSpan());
-            LogitechDeviceType = response.Data00;
+            LogitechDeviceType = (LogitechDeviceType)response.Data00;
 
             deviceStream.Dispose();
         }

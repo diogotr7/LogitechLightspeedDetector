@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace LogitechLightspeedDetector
 {
@@ -6,16 +7,44 @@ namespace LogitechLightspeedDetector
     {
         public static void Main(string[] args)
         {
-            foreach (var device in LogitechLightspeedDetector.Discover())
+            List<string> lines = new();
+            foreach (var device in LogitechLightspeedDetector.DetectDongle())
             {
-                Console.WriteLine("Found Logitech Device:");
-                Console.WriteLine($"Name: {device.DeviceName}");
-                Console.WriteLine($"Type: {device.LogitechDeviceType}");
-                Console.WriteLine($"Wireless Index: {device.DeviceIndex}");
-                Console.WriteLine($"Led count: {device.LedCount}");
+                lines.Add("Found Logitech Device from dongle:");
+                lines.Add($"Name: {device.DeviceName}");
+                lines.Add($"Type: {device.LogitechDeviceType}");
+                lines.Add($"Wireless Index: {device.DeviceIndex}");
+                lines.Add($"Led count: {device.LedCount}");
             }
 
-            Console.ReadLine();
+            foreach (var device in LogitechLightspeedDetector.DetectPowerplay())
+            {
+                lines.Add("Found Logitech Device from powerplay:");
+                lines.Add($"Name: {device.DeviceName}");
+                lines.Add($"Type: {device.LogitechDeviceType}");
+                lines.Add($"Wireless Index: {device.DeviceIndex}");
+                lines.Add($"Led count: {device.LedCount}");
+            }
+
+            foreach (var device in LogitechLightspeedDetector.DetectG915())
+            {
+                lines.Add("Found Logitech Device from G915 detector:");
+                lines.Add($"Name: {device.DeviceName}");
+                lines.Add($"Type: {device.LogitechDeviceType}");
+                lines.Add($"Wireless Index: {device.DeviceIndex}");
+                lines.Add($"Led count: {device.LedCount}");
+            }
+
+            foreach (var device in LogitechLightspeedDetector.DetectG733())
+            {
+                lines.Add("Found Logitech Device from G733 detector:");
+                lines.Add($"Name: {device.DeviceName}");
+                lines.Add($"Type: {device.LogitechDeviceType}");
+                lines.Add($"Wireless Index: {device.DeviceIndex}");
+                lines.Add($"Led count: {device.LedCount}");
+            }
+            System.IO.File.WriteAllLines("Output.txt", lines);
+            Console.WriteLine("Wrote to file");
         }
     }
 }

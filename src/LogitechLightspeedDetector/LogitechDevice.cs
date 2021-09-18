@@ -51,6 +51,8 @@ namespace LogitechLightspeedDetector
             RgbFeatureIndex = 0;
             LedCount = 0;
 
+            FlushReadQueue();
+
             GetDeviceInfo();
 
             foreach (var item in logitech_RGB_pages)
@@ -70,6 +72,30 @@ namespace LogitechLightspeedDetector
             else
             {
                 GetRgbConfiguration();
+            }
+        }
+
+        private void FlushReadQueue()
+        {
+            FapResponse fapResponse = new();
+            foreach (var device in Usages.Values)
+            {
+                var stream = device.Open();
+                stream.ReadTimeout = 300;
+
+                int result = 1;
+                while(result > 0)
+                {
+                    try
+                    {
+                        result = stream.Read(fapResponse.AsSpan());
+                    }
+                    catch
+                    {
+                        result = -1;
+                    }
+                }
+                stream.Dispose();
             }
         }
 

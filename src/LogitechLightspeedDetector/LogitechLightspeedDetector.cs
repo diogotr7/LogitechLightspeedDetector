@@ -6,12 +6,54 @@ namespace LogitechLightspeedDetector
 {
     public static class LogitechLightspeedDetector
     {
-        public static IEnumerable<LogitechDevice> Discover()
-        {
-            const int LOGITECH_VID = 0x046D;
-            const int LOGITECH_G_LIGHTSPEED_RECEIVER_PID = 0xC539;
+        private const int LOGITECH_VID = 0x046D;
+        private const int LOGITECH_G_LIGHTSPEED_RECEIVER_PID = 0xC539;
+        private const int LOGITECH_G_LIGHTSPEED_POWERPLAY_PID = 0xC53A;
+        private const int LOGITECH_G_LIGHTSPEED_G915_PID = 0xC541;
+        private const int LOGITECH_G_LIGHTSPEED_G733_PID = 0x0AB5;
 
-            var receiverDevices = DeviceList.Local.GetHidDevices(LOGITECH_VID, LOGITECH_G_LIGHTSPEED_RECEIVER_PID).ToList();
+        public static IEnumerable<LogitechDevice> DetectAll()
+        {
+            List<IEnumerable<LogitechDevice>> enumerables = new()
+            {
+                DetectDongle(),
+                DetectPowerplay(),
+                DetectG915(),
+                DetectG733()
+            };
+
+            foreach (IEnumerable<LogitechDevice> element in enumerables)
+            {
+                foreach (LogitechDevice subelement in element)
+                {
+                    yield return subelement;
+                }
+            }
+        }
+
+        public static IEnumerable<LogitechDevice> DetectDongle()
+        {
+            return Detect(LOGITECH_G_LIGHTSPEED_RECEIVER_PID);
+        }
+
+        public static IEnumerable<LogitechDevice> DetectPowerplay()
+        {
+            return Detect(LOGITECH_G_LIGHTSPEED_POWERPLAY_PID);
+        }
+
+        public static IEnumerable<LogitechDevice> DetectG915()
+        {
+            return Detect(LOGITECH_G_LIGHTSPEED_G915_PID);
+        }
+
+        public static IEnumerable<LogitechDevice> DetectG733()
+        {
+            return Detect(LOGITECH_G_LIGHTSPEED_G733_PID);
+        }
+
+        private static IEnumerable<LogitechDevice> Detect(int pid)
+        {
+            var receiverDevices = DeviceList.Local.GetHidDevices(LOGITECH_VID, pid).ToList();
             var interfaceTwo = receiverDevices.Where(d => d.DevicePath.Contains("mi_02")).ToList();
             //this is terrible but i don't know how else to filter interfaces
 

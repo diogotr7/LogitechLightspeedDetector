@@ -7,48 +7,28 @@ namespace LogitechLightspeedDetector
     public static class LogitechLightspeedDetector
     {
         private const int LOGITECH_VID = 0x046D;
-        private const int LOGITECH_G_LIGHTSPEED_RECEIVER_PID = 0xC539;
+        private const int LOGITECH_G_LIGHTSPEED_RECEIVER_PID = 0xC539;//g900, i don't know what other dongles
         private const int LOGITECH_G_LIGHTSPEED_POWERPLAY_PID = 0xC53A;
         private const int LOGITECH_G_LIGHTSPEED_G915_PID = 0xC541;
         private const int LOGITECH_G_LIGHTSPEED_G733_PID = 0x0AB5;
 
-        public static IEnumerable<LogitechDevice> DetectAll()
+        public static IEnumerable<LogitechDevice> Detect()
         {
-            List<IEnumerable<LogitechDevice>> enumerables = new()
+            List<int> donglePids = new()
             {
-                DetectDongle(),
-                DetectPowerplay(),
-                DetectG915(),
-                DetectG733()
+                LOGITECH_G_LIGHTSPEED_RECEIVER_PID,
+                LOGITECH_G_LIGHTSPEED_POWERPLAY_PID,
+                LOGITECH_G_LIGHTSPEED_G915_PID,
+                LOGITECH_G_LIGHTSPEED_G733_PID
             };
 
-            foreach (IEnumerable<LogitechDevice> element in enumerables)
+            foreach (var donglePid in donglePids)
             {
-                foreach (LogitechDevice subelement in element)
+                foreach (LogitechDevice subelement in Detect(donglePid))
                 {
                     yield return subelement;
                 }
             }
-        }
-
-        public static IEnumerable<LogitechDevice> DetectDongle()
-        {
-            return Detect(LOGITECH_G_LIGHTSPEED_RECEIVER_PID);
-        }
-
-        public static IEnumerable<LogitechDevice> DetectPowerplay()
-        {
-            return Detect(LOGITECH_G_LIGHTSPEED_POWERPLAY_PID);
-        }
-
-        public static IEnumerable<LogitechDevice> DetectG915()
-        {
-            return Detect(LOGITECH_G_LIGHTSPEED_G915_PID);
-        }
-
-        public static IEnumerable<LogitechDevice> DetectG733()
-        {
-            return Detect(LOGITECH_G_LIGHTSPEED_G733_PID);
         }
 
         private static IEnumerable<LogitechDevice> Detect(int pid)
@@ -65,17 +45,17 @@ namespace LogitechLightspeedDetector
 
             foreach (var item in GetWirelessDevices(deviceUsages))
             {
-                yield return new LogitechDevice(deviceUsages, item.Value, item.Key);
+                yield return new LogitechDevice(deviceUsages, item.Value, item.Key, pid);
             }
         }
 
-        private static Dictionary<uint, byte> GetWirelessDevices(Dictionary<byte, HidDevice> device_usages)
+        private static Dictionary<int, byte> GetWirelessDevices(Dictionary<byte, HidDevice> device_usages)
         {
             const byte LOGITECH_RECEIVER_ADDRESS = 0xFF;
             const byte LOGITECH_SET_REGISTER_REQUEST = 0x80;
             const byte LOGITECH_GET_REGISTER_REQUEST = 0x81;
 
-            Dictionary<uint, byte> map = new();
+            Dictionary<int, byte> map = new();
 
             if (device_usages.TryGetValue(1, out var device))
             {
@@ -130,7 +110,7 @@ namespace LogitechLightspeedDetector
                     {
                         var devices = new FapResponse();
                         stream.Read(devices.AsSpan());
-                        uint wirelessPid = (uint)((devices.Data02 << 8) | devices.Data01);
+                        int wirelessPid = (devices.Data02 << 8) | devices.Data01;
                         if (devices.DeviceIndex != 0xff)
                         {
                             map.Add(wirelessPid, devices.DeviceIndex);

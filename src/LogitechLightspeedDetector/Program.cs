@@ -9,27 +9,8 @@ namespace LogitechLightspeedDetector
         public static void Main(string[] args)
         {
             List<string> lines = new();
-            foreach (var device in LogitechLightspeedDetector.DetectDongle())
+            foreach (var device in LogitechLightspeedDetector.Detect())
             {
-                lines.Add("Found Logitech Device from dongle:");
-                lines.AddRange(GetDeviceInfo(device));
-            }
-
-            foreach (var device in LogitechLightspeedDetector.DetectPowerplay())
-            {
-                lines.Add("Found Logitech Device from powerplay:");
-                lines.AddRange(GetDeviceInfo(device));
-            }
-
-            foreach (var device in LogitechLightspeedDetector.DetectG915())
-            {
-                lines.Add("Found Logitech Device from G915 detector:");
-                lines.AddRange(GetDeviceInfo(device));
-            }
-
-            foreach (var device in LogitechLightspeedDetector.DetectG733())
-            {
-                lines.Add("Found Logitech Device from G733 detector:");
                 lines.AddRange(GetDeviceInfo(device));
             }
 
@@ -46,6 +27,7 @@ namespace LogitechLightspeedDetector
         {
             yield return $"Name: {device.DeviceName}";
             yield return $"Type: {device.LogitechDeviceType}";
+            yield return $"Dongle PID: 0x{device.DonglePid:X4}";
             yield return $"Wireless PID: 0x{device.WirelessPid:X4}";
             yield return $"Wireless Index: {device.DeviceIndex}";
             yield return $"Led count: {device.LedCount}";

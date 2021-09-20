@@ -36,19 +36,23 @@ namespace LogitechLightspeedDetector
 
         private readonly Dictionary<byte, HidDevice> _usages;
         private readonly Dictionary<ushort, byte> _features;
+
         public byte DeviceIndex { get; }
-        public uint WirelessPid { get; }
+        public int WirelessPid { get; }
+        public int DonglePid { get; }
         public byte RgbFeatureIndex { get; private set; }
         public LogitechDeviceType LogitechDeviceType { get; private set; }
         public string DeviceName { get; private set; }
         public byte LedCount { get; private set; }
 
-        public LogitechDevice(Dictionary<byte, HidDevice> usages, byte deviceIndex, uint wirelessPid)
+        public LogitechDevice(Dictionary<byte, HidDevice> usages, byte deviceIndex, int wirelessPid, int donglePid)
         {
             _usages = usages;
             _features = new();
+
             DeviceIndex = deviceIndex;
             WirelessPid = wirelessPid;
+            DonglePid = donglePid;
             RgbFeatureIndex = 0;
             LedCount = 0;
 

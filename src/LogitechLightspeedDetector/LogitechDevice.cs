@@ -34,20 +34,21 @@ namespace LogitechLightspeedDetector
             0x8071
         };
 
-        public Dictionary<byte, HidDevice> Usages { get; } = new();
-        public Dictionary<ushort, byte> Features { get; } = new();
-        public byte DeviceIndex { get; private set; }
+        private readonly Dictionary<byte, HidDevice> _usages;
+        private readonly Dictionary<ushort, byte> _features;
+        public byte DeviceIndex { get; }
+        public uint WirelessPid { get; }
         public byte RgbFeatureIndex { get; private set; }
         public LogitechDeviceType LogitechDeviceType { get; private set; }
-        public bool Wireless { get; private set; }
         public string DeviceName { get; private set; }
         public byte LedCount { get; private set; }
 
-        public LogitechDevice(Dictionary<byte, HidDevice> usages, byte deviceIndex, bool wireless)
+        public LogitechDevice(Dictionary<byte, HidDevice> usages, byte deviceIndex, uint wirelessPid)
         {
+            _usages = usages;
+            _features = new();
             DeviceIndex = deviceIndex;
-            Usages = usages;
-            Wireless = wireless;
+            WirelessPid = wirelessPid;
             RgbFeatureIndex = 0;
             LedCount = 0;
 
@@ -60,7 +61,7 @@ namespace LogitechLightspeedDetector
                 var featureIndex = GetFeatureIndex(item);
                 if (featureIndex > 0)
                 {
-                    Features.Add(item, featureIndex);
+                    _features.Add(item, featureIndex);
                     RgbFeatureIndex = featureIndex;
                 }
             }
@@ -78,7 +79,7 @@ namespace LogitechLightspeedDetector
         private void FlushReadQueue()
         {
             FapResponse fapResponse = new();
-            foreach (var device in Usages.Values)
+            foreach (var device in _usages.Values)
             {
                 var stream = device.Open();
                 stream.ReadTimeout = 300;
@@ -101,10 +102,10 @@ namespace LogitechLightspeedDetector
 
         private void GetDeviceFeatureList()
         {
-            if (!Usages.TryGetValue(1, out var device1))
+            if (!_usages.TryGetValue(1, out var device1))
                 throw new Exception();
 
-            if (!Usages.TryGetValue(2, out var device2))
+            if (!_usages.TryGetValue(2, out var device2))
                 throw new Exception();
 
             if (!device1.TryOpen(out var deviceStream1))
@@ -138,12 +139,12 @@ namespace LogitechLightspeedDetector
             getFeaturesRequest.Init(DeviceIndex, featureIndex);
             getFeaturesRequest.FeatureCommand = LOGITECH_CMD_FEATURE_SET_GET_ID;
 
-            for (byte i = 0; Features.Count < featureCount; i++)
+            for (byte i = 0; _features.Count < featureCount; i++)
             {
                 getFeaturesRequest.Data0 = i;
                 deviceStream1.Write(getCountRequest.AsSpan());
                 deviceStream2.Read(response.AsSpan());
-                Features.Add((ushort)((response.Data00 << 8) | response.Data01), i);
+                _features.Add((ushort)((response.Data00 << 8) | response.Data01), i);
             }
 
             deviceStream1.Dispose();
@@ -152,7 +153,7 @@ namespace LogitechLightspeedDetector
 
         private void GetDeviceInfo()
         {
-            if (!Usages.TryGetValue(2, out var device))
+            if (!_usages.TryGetValue(2, out var device))
                 throw new Exception();
 
             if (!device.TryOpen(out var deviceStream))
@@ -160,7 +161,7 @@ namespace LogitechLightspeedDetector
 
             var response = new FapResponse();
 
-            if (!Features.TryGetValue(LOGITECH_HIDPP_PAGE_DEVICE_NAME_TYPE, out var nameFeatureIndex))
+            if (!_features.TryGetValue(LOGITECH_HIDPP_PAGE_DEVICE_NAME_TYPE, out var nameFeatureIndex))
             {
                 FapLongRequest getIndex = new();
                 getIndex.Init(DeviceIndex, LOGITECH_HIDPP_PAGE_ROOT_IDX, LOGITECH_CMD_ROOT_GET_FEATURE);
@@ -171,7 +172,7 @@ namespace LogitechLightspeedDetector
                 deviceStream.Read(response.AsSpan());
                 nameFeatureIndex = response.Data00;
 
-                Features.Add(LOGITECH_HIDPP_PAGE_DEVICE_NAME_TYPE, nameFeatureIndex);
+                _features.Add(LOGITECH_HIDPP_PAGE_DEVICE_NAME_TYPE, nameFeatureIndex);
             }
 
             var getLength = new FapLongRequest();
@@ -207,7 +208,7 @@ namespace LogitechLightspeedDetector
 
         private void GetRgbConfiguration()
         {
-            if (!Usages.TryGetValue(2, out var device))
+            if (!_usages.TryGetValue(2, out var device))
                 throw new Exception();
 
             if (!device.TryOpen(out var deviceStream))
@@ -228,7 +229,7 @@ namespace LogitechLightspeedDetector
 
         private byte GetFeatureIndex(ushort featurePage)
         {
-            if (!Usages.TryGetValue(2, out var device))
+            if (!_usages.TryGetValue(2, out var device))
                 throw new Exception();
 
             if (!device.TryOpen(out var deviceStream))

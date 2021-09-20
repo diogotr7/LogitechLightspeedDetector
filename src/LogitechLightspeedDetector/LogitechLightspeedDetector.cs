@@ -65,7 +65,7 @@ namespace LogitechLightspeedDetector
 
             foreach (var item in GetWirelessDevices(deviceUsages))
             {
-                yield return new LogitechDevice(deviceUsages, item.Value, true);
+                yield return new LogitechDevice(deviceUsages, item.Value, item.Key);
             }
         }
 
